@@ -1,26 +1,41 @@
 """
-UniHAP CLI Application using Typer and Rich.
-Commands:
-- `unihap run <input_file>` — Executes the 12-layer enrichment pipeline
-- `unihap ui` — Launches the Streamlit HITL Review Dashboard
-- `unihap evaluate` — Scores predictions against 200-row ground truth
-- `unihap info` — Displays active architecture and configuration
+==============================================================================
+FILE: src/unihap/cli.py
+MODULE: Command Line Interface (CLI)
+PURPOSE:
+    Provides user-friendly terminal commands using Typer and Rich.
+    Supports running the 12-layer pipeline on catalog spreadsheets, launching
+    the Streamlit Human-in-the-Loop review dashboard, viewing active system
+    configurations, and exporting 252-column delivery CSVs.
+
+COMMANDS:
+    - `unihap run <input_file> [--output <output.csv>]`:
+        Executes the 12-layer enrichment pipeline and renders a summary table.
+    - `unihap ui`:
+        Launches the Streamlit Human-in-the-Loop review queue.
+    - `unihap info`:
+        Prints active system configuration, model tiers, and thresholds.
+
+INPUT:
+    - CLI arguments and options
+OUTPUT:
+    - Formatted Rich terminal output, tables, and generated delivery artifacts
+==============================================================================
 """
 
-import sys
 import subprocess
 from pathlib import Path
+
 import typer
 from rich.console import Console
-from rich.table import Table
 from rich.panel import Panel
-from unihap.pipeline import UniHAPPipeline
+from rich.table import Table
+
 from unihap.config import settings
+from unihap.pipeline import UniHAPPipeline
 
 app = typer.Typer(
-    name="unihap",
-    help="UniHAP — Enterprise Product Intelligence & Attribute Enrichment Pipeline",
-    add_completion=False
+    name="unihap", help="UniHAP — Enterprise Product Intelligence & Attribute Enrichment Pipeline", add_completion=False
 )
 console = Console()
 
@@ -28,10 +43,14 @@ console = Console()
 @app.command()
 def run(
     input_file: Path = typer.Argument(..., help="Path to input XLSX or CSV catalog sheet"),
-    output_file: Path = typer.Option(None, "--output", "-o", help="Optional output JSON/CSV path"),
+    output_file: Path = typer.Option(None, "--output", "-o", help="Optional output 252-column delivery CSV path"),
 ):
     """Run the 12-layer UniHAP enrichment pipeline on a product catalog."""
-    console.print(Panel.fit("[bold cyan]UniHAP 12-Layer Product Intelligence Pipeline[/bold cyan]\n[dim]Evidence-Grounded Catalog Enrichment[/dim]"))
+    console.print(
+        Panel.fit(
+            "[bold cyan]UniHAP 12-Layer Product Intelligence Pipeline[/bold cyan]\n[dim]Evidence-Grounded Catalog Enrichment[/dim]"
+        )
+    )
 
     if not input_file.exists():
         console.print(f"[red]Error: Input file '{input_file}' not found.[/red]")
@@ -65,18 +84,20 @@ def ui():
 @app.command()
 def info():
     """Display active pipeline architecture, LLM cascade, and configurations."""
-    console.print(Panel(
-        f"[bold]UniHAP Pipeline Configuration[/bold]\n\n"
-        f"• [cyan]Environment:[/cyan] {settings.unihap_env}\n"
-        f"• [cyan]Python Runtime:[/cyan] uv (Python 3.11+)\n"
-        f"• [cyan]Groq LLM Tier:[/cyan] {settings.groq_model}\n"
-        f"• [cyan]Local LLM Tier:[/cyan] {settings.ollama_model} ({settings.ollama_base_url})\n"
-        f"• [cyan]Embeddings:[/cyan] {settings.embedding_model_name}\n"
-        f"• [cyan]Auto-Approve Threshold:[/cyan] {settings.confidence_auto_approve * 100}%\n"
-        f"• [cyan]Review Threshold:[/cyan] {settings.confidence_needs_review * 100}%",
-        title="UniHAP System Info",
-        border_style="blue"
-    ))
+    console.print(
+        Panel(
+            f"[bold]UniHAP Pipeline Configuration[/bold]\n\n"
+            f"• [cyan]Environment:[/cyan] {settings.unihap_env}\n"
+            f"• [cyan]Python Runtime:[/cyan] uv (Python 3.11+)\n"
+            f"• [cyan]Groq LLM Tier:[/cyan] {settings.groq_model}\n"
+            f"• [cyan]Local LLM Tier:[/cyan] {settings.ollama_model} ({settings.ollama_base_url})\n"
+            f"• [cyan]Embeddings:[/cyan] {settings.embedding_model_name}\n"
+            f"• [cyan]Auto-Approve Threshold:[/cyan] {settings.confidence_auto_approve * 100}%\n"
+            f"• [cyan]Review Threshold:[/cyan] {settings.confidence_needs_review * 100}%",
+            title="UniHAP System Info",
+            border_style="blue",
+        )
+    )
 
 
 if __name__ == "__main__":

@@ -1,19 +1,20 @@
 """
-UniHAP Streamlit Human-in-the-Loop (HITL) Review Dashboard.
-Allows catalog curators to review flagged items, inspect source diffs and provenance spans,
-and approve/correct attribute values in real time.
+==============================================================================
+FILE: src/unihap/ui/app.py
+MODULE: Streamlit Human-in-the-Loop (HITL) Review Dashboard
+PURPOSE:
+    Provides an interactive web dashboard for catalog curators and QA reviewers.
+    Enables:
+      - Uploading raw catalog spreadsheets (XLSX / CSV)
+      - Inspecting flagged attributes with side-by-side manufacturer source diffs
+      - Verifying evidence spans and provenance URLs
+      - One-click approval and correction feeding into the PatternRAG cache
+==============================================================================
 """
 
 import streamlit as st
-import pandas as pd
-from unihap.pipeline import UniHAPPipeline
-from unihap.core.models import StatusTag
 
-st.set_page_config(
-    page_title="UniHAP — Catalog Review Dashboard",
-    page_icon="🔍",
-    layout="wide"
-)
+st.set_page_config(page_title="UniHAP — Catalog Review Dashboard", page_icon="🔍", layout="wide")
 
 st.title("🔍 UniHAP — Product Intelligence Enrichment Pipeline")
 st.caption("12-Layer Evidence-Grounded Catalog Enrichment & Human-in-the-Loop Review Queue")
@@ -24,7 +25,6 @@ uploaded_file = st.sidebar.file_uploader("Upload Raw Catalog Sheet (XLSX / CSV)"
 
 if uploaded_file is not None:
     st.sidebar.success(f"Loaded: {uploaded_file.name}")
-    # In live UI, executes pipeline and displays interactive review table
     st.subheader("Catalog Enrichment Results")
     st.info("Upload completed. Ready for batch execution and provenance auditing.")
 else:

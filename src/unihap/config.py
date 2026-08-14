@@ -1,11 +1,27 @@
 """
-UniHAP Global Configuration and Settings using Pydantic Settings.
+==============================================================================
+FILE: src/unihap/config.py
+MODULE: Global Configuration & Environment Settings
+PURPOSE:
+    Provides centralized, environment-aware configuration using Pydantic Settings.
+    Manages API keys (Groq, Firecrawl), Ollama local endpoints, confidence thresholds,
+    file paths, and Knowledge Graph connection parameters.
+
+CLASSES:
+    - Settings: Pydantic BaseSettings class loading from .env and environment variables.
+
+VARIABLES:
+    - settings: Singleton instance of Settings available application-wide.
+    - PROJECT_ROOT: Path to repository root.
+    - DATA_DIR: Path to data storage directory.
+    - LOOKUP_DIR: Path to static lookup tables directory.
+==============================================================================
 """
 
-import os
 from pathlib import Path
-from pydantic_settings import BaseSettings, SettingsConfigDict
+
 from pydantic import Field
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
 # Base Directory paths
 PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
@@ -15,11 +31,8 @@ LOOKUP_DIR = DATA_DIR / "lookup_tables"
 
 class Settings(BaseSettings):
     """Global configuration settings for UniHAP pipeline."""
-    model_config = SettingsConfigDict(
-        env_file=str(PROJECT_ROOT / ".env"),
-        env_file_encoding="utf-8",
-        extra="ignore"
-    )
+
+    model_config = SettingsConfigDict(env_file=str(PROJECT_ROOT / ".env"), env_file_encoding="utf-8", extra="ignore")
 
     # Environment
     unihap_env: str = Field(default="development", alias="UNIHAP_ENV")
@@ -34,8 +47,7 @@ class Settings(BaseSettings):
 
     firecrawl_api_key: str | None = Field(default=None, alias="FIRECRAWL_API_KEY")
     wikidata_user_agent: str = Field(
-        default="UniHAP-CatalogBot/1.0 (contact@unihap.local)",
-        alias="WIKIDATA_USER_AGENT"
+        default="UniHAP-CatalogBot/1.0 (contact@unihap.local)", alias="WIKIDATA_USER_AGENT"
     )
 
     # Knowledge Graph

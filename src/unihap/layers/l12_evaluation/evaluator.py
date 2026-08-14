@@ -1,22 +1,40 @@
 """
-Layer 12: Evaluation / Benchmark Engine
-Scores enriched results against a 200-row ground-truth dataset.
-Calculates field accuracy, LOV conformance %, fill rates, provenance coverage %,
-and confidence-tier breakdown.
+==============================================================================
+FILE: src/unihap/layers/l12_evaluation/evaluator.py
+MODULE: Layer 12 — Evaluation & Benchmark Scoring Engine
+PURPOSE:
+    Evaluates batch enrichment performance against ground-truth datasets. Computes:
+      - Field-level exact/near-match accuracy %
+      - LOV conformance % (vocabulary compliance)
+      - Required-attribute fill rate %
+      - Provenance coverage % (% fields with verified source spans)
+      - Confidence-tier distribution (Auto-Approved / Needs-Review / Rejected)
+
+CLASSES:
+    - BenchmarkEvaluator: Statistical scoring and metrics aggregation engine.
+
+FUNCTIONS / METHODS:
+    - BenchmarkEvaluator.evaluate_batch(records: List[EnrichedProductRecord], ground_truth: Optional[List[Dict]]) -> Dict[str, Any]:
+        Calculates composite performance metrics across all enriched items.
+
+INPUT:
+    - List[EnrichedProductRecord] and optional ground truth list
+OUTPUT:
+    - Dict with precision metrics and tier breakdown
+==============================================================================
 """
 
-from typing import List, Dict, Any
-from unihap.core.models import EnrichedProductRecord, StatusTag
+from typing import Any, Dict, List, Optional
+
 from unihap.core.logging import logger
+from unihap.core.models import EnrichedProductRecord, StatusTag
 
 
 class BenchmarkEvaluator:
     """Computes precision metrics and ground truth alignment."""
 
     def evaluate_batch(
-        self,
-        records: List[EnrichedProductRecord],
-        ground_truth: List[Dict[str, Any]] = None
+        self, records: List[EnrichedProductRecord], ground_truth: Optional[List[Dict[str, Any]]] = None
     ) -> Dict[str, Any]:
         """Calculates comprehensive pipeline performance metrics."""
         total = len(records)
@@ -39,11 +57,7 @@ class BenchmarkEvaluator:
             "avg_confidence_score": round(avg_conf, 3),
             "avg_lov_conformance_pct": round(avg_lov, 2),
             "avg_provenance_coverage_pct": round(avg_prov, 2),
-            "tier_counts": {
-                "auto_approved": auto_approved,
-                "needs_review": needs_review,
-                "rejected": rejected
-            }
+            "tier_counts": {"auto_approved": auto_approved, "needs_review": needs_review, "rejected": rejected},
         }
 
         logger.info(

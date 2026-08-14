@@ -1,15 +1,33 @@
 """
-Core Pydantic data models for UniHAP pipeline.
-Enforces strict schema validation, provenance tracking, and LOV constraints.
+==============================================================================
+FILE: src/unihap/core/models.py
+MODULE: Core Data Models & Pydantic Schemas
+PURPOSE:
+    Defines the canonical data schemas for all UniHAP pipeline layers.
+    Enforces type safety, JSON validation, provenance tracking, and quality status
+    tagging across the entire enrichment lifecycle.
+
+CLASSES:
+    - StatusTag(Enum): AUTO_APPROVED, NEEDS_REVIEW, REJECTED, ABSTAINED.
+    - ProvenanceSpan: Verifiable source citation (source URL, exact text span, confidence).
+    - AttributeValue: Single extracted attribute with raw value, normalized value, UOM, and provenance.
+    - Classpath: 3-tier taxonomy classification (Dept > Class > Fine).
+    - ProductDescriptionSet: 5 standardized description tiers (Invoice <=40 CAPS, Mobile, Short, Long, Bullets).
+    - ProductRecord: Raw un-enriched incoming supplier row.
+    - EnrichedProductRecord: Fully enriched 12-layer product object.
+    - PipelineResult: Summary result containing aggregate counts and processed records.
+==============================================================================
 """
 
 from enum import Enum
 from typing import Any, Dict, List, Optional
+
 from pydantic import BaseModel, Field
 
 
 class StatusTag(str, Enum):
     """Validation and review status for an enriched field or product."""
+
     AUTO_APPROVED = "auto-approved"
     NEEDS_REVIEW = "needs-review"
     REJECTED = "rejected"
@@ -18,6 +36,7 @@ class StatusTag(str, Enum):
 
 class ProvenanceSpan(BaseModel):
     """Source evidence span backing any extracted attribute fact."""
+
     source_url: str = Field(description="URL of the official manufacturer domain page")
     exact_text_span: str = Field(description="Exact character span retrieved from markdown/table")
     retrieval_method: str = Field(default="crawl4ai_scrape", description="Method used to fetch page")
@@ -26,6 +45,7 @@ class ProvenanceSpan(BaseModel):
 
 class AttributeValue(BaseModel):
     """Represents an extracted and normalized attribute value with provenance."""
+
     attribute_name: str
     raw_value: Optional[str] = None
     normalized_value: Optional[str] = None
@@ -38,6 +58,7 @@ class AttributeValue(BaseModel):
 
 class Classpath(BaseModel):
     """Hierarchical taxonomy classification (Dept > Class > Fine)."""
+
     department: str
     category_class: str
     fine_category: str
@@ -52,6 +73,7 @@ class Classpath(BaseModel):
 
 class ProductDescriptionSet(BaseModel):
     """5 standardized description formats generated from validated attributes."""
+
     invoice_caps: str = Field(default="", max_length=40, description="<=40 characters, ALL CAPS")
     mobile: str = Field(default="", description="60-80 characters for mobile viewport")
     short_title: str = Field(default="", description="Standard e-commerce title")
@@ -61,6 +83,7 @@ class ProductDescriptionSet(BaseModel):
 
 class ProductRecord(BaseModel):
     """Raw incoming product record from messy XLSX / CSV catalog."""
+
     row_id: str = Field(description="Unique row or SKU identifier")
     raw_mpn: Optional[str] = Field(default=None, alias="MPN")
     raw_manufacturer: Optional[str] = Field(default=None, alias="Manufacturer")
@@ -71,6 +94,7 @@ class ProductRecord(BaseModel):
 
 class EnrichedProductRecord(BaseModel):
     """Complete 12-layer enriched product deliverable."""
+
     row_id: str
     mpn: str
     canonical_manufacturer: str
@@ -103,6 +127,7 @@ class EnrichedProductRecord(BaseModel):
 
 class PipelineResult(BaseModel):
     """Aggregate result from executing the UniHAP enrichment pipeline."""
+
     total_processed: int = 0
     auto_approved_count: int = 0
     needs_review_count: int = 0

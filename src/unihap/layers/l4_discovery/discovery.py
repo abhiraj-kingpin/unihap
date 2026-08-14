@@ -1,23 +1,48 @@
 """
-Layer 4: Source Discovery
-Resolves manufacturer root domain via Wikidata SPARQL / REST API, then
-discovers the official product spec sheet URL via Firecrawl search/map.
-Enforces hard sourcing filter: manufacturer domains ONLY (no distributors/marketplaces).
+==============================================================================
+FILE: src/unihap/layers/l4_discovery/discovery.py
+MODULE: Layer 4 — Source Discovery & Official Domain Resolution
+PURPOSE:
+    Resolves official manufacturer root domains (using Wikidata API cached lookups)
+    and discovers official product spec sheet URLs (via Firecrawl search and map).
+    Enforces a strict domain blocklist against third-party distributors and marketplaces
+    to guarantee zero third-party data contamination.
+
+CLASSES:
+    - SourceDiscoverer: Manages domain caches, Wikidata resolution, and official URL formulation.
+
+FUNCTIONS / METHODS:
+    - SourceDiscoverer.resolve_manufacturer_domain(manufacturer: str) -> Optional[str]:
+        Retrieves or discovers official root domain for a canonical manufacturer.
+    - SourceDiscoverer.find_product_url(manufacturer: str, mpn: str) -> Optional[str]:
+        Discovers official product URL while checking against blocklisted domains.
+
+INPUT:
+    - Canonical manufacturer string and MPN
+OUTPUT:
+    - Validated official manufacturer URL or None
+==============================================================================
 """
 
-from typing import Optional, Dict
 import urllib.parse
-from unihap.core.logging import logger
-from unihap.config import settings
+from typing import Dict, Optional
 
-# Hard blocklist for non-manufacturer sources
+from unihap.core.logging import logger
+
 BLOCKLISTED_DOMAINS = {
-    "amazon.com", "ebay.com", "homedepot.com", "lowes.com", "walmart.com",
-    "ferguson.com", "build.com", "supplyhouse.com", "grainger.com", "aliexpress.com"
+    "amazon.com",
+    "ebay.com",
+    "homedepot.com",
+    "lowes.com",
+    "walmart.com",
+    "ferguson.com",
+    "build.com",
+    "supplyhouse.com",
+    "grainger.com",
+    "aliexpress.com",
 }
 
-# Known manufacturer official domains cache
-KNOWN_MANUFACTURER_DOMAINS = {
+KNOWN_MANUFACTURER_DOMAINS: Dict[str, str] = {
     "Kohler": "kohler.com",
     "Delta Faucet": "deltafaucet.com",
     "Moen": "moen.com",
@@ -33,6 +58,14 @@ KNOWN_MANUFACTURER_DOMAINS = {
     "Nibco": "nibco.com",
     "Oatey": "oatey.com",
     "Elkay": "elkay.com",
+    "Frigidaire": "frigidaire.com",
+    "Whirlpool Corporation": "whirlpool.com",
+    "Rheem Manufacturing": "rheem.com",
+    "Freud Inc": "diablotools.com",
+    "Diablo": "diablotools.com",
+    "3M": "3m.com",
+    "DeWalt": "dewalt.com",
+    "Milwaukee Tool": "milwaukeetool.com",
 }
 
 

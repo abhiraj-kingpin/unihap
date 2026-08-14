@@ -6,8 +6,8 @@ UniHAP — Enterprise Product Intelligence & Attribute Enrichment Pipeline
 __version__ = "0.1.0"
 __author__ = "Mani Joshi"
 
+from unihap.core.models import EnrichedProductRecord, PipelineResult, ProductRecord
 from unihap.pipeline import UniHAPPipeline
-from unihap.core.models import ProductRecord, EnrichedProductRecord, PipelineResult
 
 __all__ = [
     "UniHAPPipeline",

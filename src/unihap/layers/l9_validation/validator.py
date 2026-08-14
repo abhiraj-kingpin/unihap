@@ -1,18 +1,32 @@
 """
-Layer 9: Validation / Confidence Engine
-Evaluates schema validity, LOV membership, character limits, and provenance completeness.
-Tags records into: auto-approved / needs-review / rejected.
+==============================================================================
+FILE: src/unihap/layers/l9_validation/validator.py
+MODULE: Layer 9 — Validation & Quality Scoring Engine
+PURPOSE:
+    Evaluates schema validity, LOV conformance %, character limit adherence, and
+    provenance completeness for all extracted fields. Computes an overall confidence
+    score and assigns status tags:
+      - AUTO_APPROVED (Score >= 90%): High confidence, straight-through processing.
+      - NEEDS_REVIEW (Score 70-89%): Flagged for human curation triage queue.
+      - REJECTED (Score < 70%): Low confidence or missing critical evidence.
+
+CLASSES:
+    - QualityValidator: Validation rules engine and confidence calculator.
+
+FUNCTIONS / METHODS:
+    - QualityValidator.validate_and_score(record: EnrichedProductRecord) -> EnrichedProductRecord:
+        Calculates provenance coverage, LOV compliance %, checks length limits, and assigns StatusTag.
+
+INPUT:
+    - EnrichedProductRecord instance
+OUTPUT:
+    - EnrichedProductRecord with overall_confidence, lov_conformance_pct, and overall_status
+==============================================================================
 """
 
-from typing import Dict
-from unihap.core.models import (
-    EnrichedProductRecord,
-    StatusTag,
-    AttributeValue,
-    ProductDescriptionSet
-)
 from unihap.config import settings
 from unihap.core.logging import logger
+from unihap.core.models import EnrichedProductRecord, StatusTag
 
 
 class QualityValidator:
@@ -21,7 +35,7 @@ class QualityValidator:
     def __init__(
         self,
         auto_approve_threshold: float = settings.confidence_auto_approve,
-        needs_review_threshold: float = settings.confidence_needs_review
+        needs_review_threshold: float = settings.confidence_needs_review,
     ):
         self.auto_thresh = auto_approve_threshold
         self.review_thresh = needs_review_threshold

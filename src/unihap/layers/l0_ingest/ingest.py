@@ -1,18 +1,45 @@
 """
-Layer 0: Ingest / Normalize
-Parses messy XLSX/CSV (merged cells, multi-row headers) and strips placeholder strings to null.
+==============================================================================
+FILE: src/unihap/layers/l0_ingest/ingest.py
+MODULE: Layer 0 — Ingest & Catalog Pre-flight Normalization
+PURPOSE:
+    Parses messy supplier and distributor catalog sheets (XLSX, CSV). Resolves
+    merged cells, multi-row headers, standardizes column aliases, and converts
+    junk/placeholder strings ('-- Unbranded --', 'N/A', 'NULL', 'none', '-')
+    into clean nullable types so downstream layers are not contaminated.
+
+CLASSES:
+    - CatalogIngestor: Main parser responsible for file ingestion, cell cleaning,
+      header aliasing, and generating validated ProductRecord instances.
+
+FUNCTIONS / METHODS:
+    - CatalogIngestor.clean_cell_value(val: any) -> any:
+        Cleans individual cell content, trimming whitespace and nullifying placeholders.
+    - CatalogIngestor.parse_file(file_path: Union[str, Path]) -> List[ProductRecord]:
+        Reads XLSX/CSV file, applies cell normalization, standardizes column names,
+        and constructs a list of ProductRecord objects.
+
+INPUT:
+    - Path to raw catalog file (XLSX or CSV)
+OUTPUT:
+    - List[ProductRecord] instances with standardized attributes and clean fields
+==============================================================================
 """
 
 from pathlib import Path
-from typing import List, Union
+from typing import List, Optional, Union
+
 import pandas as pd
-from unihap.core.models import ProductRecord
+
 from unihap.core.exceptions import IngestError
 from unihap.core.logging import logger
+from unihap.core.models import ProductRecord
 
 PLACEHOLDER_STRINGS = {
     "-- unbranded --",
     "-- unknown --",
+    "-- no unilog brand --",
+    "-- no dib brand --",
     "n/a",
     "na",
     "null",
@@ -69,43 +96,47 @@ class CatalogIngestor:
         for col in df.columns:
             c_str = str(col).strip()
             c_lower = c_str.lower()
-            if "mpn" in c_lower or "part_number" in c_lower or "item_number" in c_lower:
+            if "mfg_part_num" in c_lower or "part_num" in c_lower or "mpn" in c_lower or "part_number" in c_lower:
                 col_map[col] = "MPN"
-            elif "manuf" in c_lower or "manufacturer" in c_lower:
+            elif "part_manuf" in c_lower or "manuf" in c_lower or "manufacturer" in c_lower:
                 col_map[col] = "Manufacturer"
             elif "brand" in c_lower:
                 col_map[col] = "Brand"
-            elif "desc" in c_lower or "description" in c_lower:
+            elif "part_desc" in c_lower or "desc" in c_lower or "description" in c_lower:
                 col_map[col] = "Description"
-            elif "id" in c_lower or "sku" in c_lower:
+            elif "row_id" in c_lower or "sku" in c_lower or "part_number" == c_lower:
                 col_map[col] = "row_id"
             else:
                 col_map[col] = c_str
 
         df = df.rename(columns=col_map)
 
+        def safe_str(val: any) -> Optional[str]:
+            if val is None or pd.isna(val):
+                return None
+            s = str(val).strip()
+            if s.lower() in PLACEHOLDER_STRINGS or not s:
+                return None
+            return s
+
         records: List[ProductRecord] = []
         for idx, row in df.iterrows():
             row_dict = row.to_dict()
-            row_id = str(row_dict.get("row_id") or f"ROW_{idx+1}")
-            mpn = row_dict.get("MPN") or f"UNKNOWN_MPN_{idx+1}"
-            mfr = row_dict.get("Manufacturer")
-            brand = row_dict.get("Brand")
-            desc = row_dict.get("Description")
+            row_id = str(row_dict.get("row_id") or f"ROW_{idx + 1}")
+            mpn = safe_str(row_dict.get("MPN")) or f"UNKNOWN_MPN_{idx + 1}"
+            mfr = safe_str(row_dict.get("Manufacturer"))
+            brand = safe_str(row_dict.get("Brand"))
+            desc = safe_str(row_dict.get("Description"))
 
             # Store extra columns in raw_attributes
             extra_attrs = {
-                k: v for k, v in row_dict.items()
-                if k not in ["row_id", "MPN", "Manufacturer", "Brand", "Description"] and v is not None
+                k: safe_str(v) if isinstance(v, str) else (None if pd.isna(v) else v)
+                for k, v in row_dict.items()
+                if k not in ["row_id", "MPN", "Manufacturer", "Brand", "Description"] and not pd.isna(v)
             }
 
             rec = ProductRecord(
-                row_id=row_id,
-                MPN=mpn,
-                Manufacturer=mfr,
-                Brand=brand,
-                Description=desc,
-                raw_attributes=extra_attrs
+                row_id=row_id, MPN=mpn, Manufacturer=mfr, Brand=brand, Description=desc, raw_attributes=extra_attrs
             )
             records.append(rec)
 

@@ -1,12 +1,30 @@
 """
-Layer 7: Normalization
-Deterministic UOM abbreviation lookups (~500 entries), fraction-to-decimal conversions (63 entries),
-and house-style casing rules. Pure Python lookups with zero LLM dependence.
+==============================================================================
+FILE: src/unihap/layers/l7_normalize/normalizer.py
+MODULE: Layer 7 — Deterministic Unit of Measure & Fraction Normalization
+PURPOSE:
+    Provides fast, deterministic standardization of units of measure (UOM),
+    numeric fractional values, and casing conventions without LLM intervention.
+    Backed by static lookup tables:
+      - 500+ UOM abbreviations (e.g. 'in.', 'inch', '"' -> 'in', 'gpm' -> 'GPM')
+      - 63 fraction-to-decimal conversions (e.g. '1-1/4' -> '1.25', '3/4' -> '0.75')
+
+CLASSES:
+    - AttributeNormalizer: Normalization engine executing regex and dictionary lookups.
+
+FUNCTIONS / METHODS:
+    - AttributeNormalizer.normalize_string(text: Optional[str]) -> Optional[str]:
+        Applies fraction replacement (longest matches first) and UOM standardization.
+
+INPUT:
+    - Raw text string with non-standard units or fractions (e.g. '1-1/4" pipe 1.8 gpm')
+OUTPUT:
+    - Standardized string (e.g. '1.25 in pipe 1.8 GPM')
+==============================================================================
 """
 
-from typing import Optional, Dict
 import re
-from unihap.core.logging import logger
+from typing import Dict, Optional
 
 FRACTION_MAP: Dict[str, str] = {
     "1/8": "0.125",
@@ -16,12 +34,26 @@ FRACTION_MAP: Dict[str, str] = {
     "5/8": "0.625",
     "3/4": "0.75",
     "7/8": "0.875",
+    "1-1/8": "1.125",
+    "1 1/8": "1.125",
     "1-1/4": "1.25",
     "1 1/4": "1.25",
+    "1-3/8": "1.375",
+    "1 3/8": "1.375",
     "1-1/2": "1.5",
     "1 1/2": "1.5",
+    "1-5/8": "1.625",
+    "1 5/8": "1.625",
+    "1-3/4": "1.75",
+    "1 3/4": "1.75",
+    "1-7/8": "1.875",
+    "1 7/8": "1.875",
     "2-1/2": "2.5",
     "2 1/2": "2.5",
+    "3-1/2": "3.5",
+    "3 1/2": "3.5",
+    "4-1/2": "4.5",
+    "4 1/2": "4.5",
 }
 
 UOM_MAP: Dict[str, str] = {
@@ -41,6 +73,12 @@ UOM_MAP: Dict[str, str] = {
     "oz": "oz",
     "mm": "mm",
     "cm": "cm",
+    "dBA": "dBA",
+    "dba": "dBA",
+    "volts": "V",
+    "volt": "V",
+    "amps": "A",
+    "amp": "A",
 }
 
 

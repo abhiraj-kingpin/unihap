@@ -1,15 +1,34 @@
 """
-Layer 6: Attribute Extraction (Constrained RAG)
-Per allowed attribute: retrieves source spans from Markdown text and extracts LOV-only values
-with mandatory evidence_span. No evidence span match = ABSTAIN (zero ungrounded facts).
-Powered by Groq LLaMA-3.3-70B with JSON-schema constraints.
+==============================================================================
+FILE: src/unihap/layers/l6_extraction/extractor.py
+MODULE: Layer 6 — Constrained Attribute Extraction (Constrained RAG)
+PURPOSE:
+    Extracts allowed product attributes from scraped Markdown content and raw
+    attributes. Enforces the strict Zero-Hallucination rule:
+    - Every extracted value MUST belong to the Knowledge Graph List of Values (LOV).
+    - Every value MUST cite an exact, verifiable `evidence_span` from the source text.
+    - If no evidence span exists in the text, the model MUST ABSTAIN (`status: abstained`).
+
+CLASSES:
+    - AttributeExtractor: Constrained RAG extraction engine with JSON-schema enforcement.
+
+FUNCTIONS / METHODS:
+    - AttributeExtractor.extract_attributes(markdown_text: str, source_url: str, classpath: str, raw_attributes: Optional[Dict] = None) -> Dict[str, AttributeValue]:
+        Extracts validated attributes, builds ProvenanceSpan objects, and marks ungrounded
+        fields as ABSTAINED.
+
+INPUT:
+    - Clean source Markdown text, source URL, full Classpath string, and raw supplier attributes
+OUTPUT:
+    - Dict[attribute_name, AttributeValue] containing LOV values, provenance spans, and confidence scores
+==============================================================================
 """
 
-from typing import Dict, List, Optional
+from typing import Dict, Optional
+
+from unihap.core.logging import logger
 from unihap.core.models import AttributeValue, ProvenanceSpan, StatusTag
 from unihap.layers.l3_knowledge_graph.graph import TaxonomyGraph
-from unihap.core.logging import logger
-from unihap.config import settings
 
 
 class AttributeExtractor:
@@ -19,11 +38,7 @@ class AttributeExtractor:
         self.graph = graph or TaxonomyGraph()
 
     def extract_attributes(
-        self,
-        markdown_text: str,
-        source_url: str,
-        classpath: str,
-        raw_attributes: Optional[Dict] = None
+        self, markdown_text: str, source_url: str, classpath: str, raw_attributes: Optional[Dict] = None
     ) -> Dict[str, AttributeValue]:
         """
         Extracts allowed attributes for the given classpath from scraped text.
@@ -38,7 +53,7 @@ class AttributeExtractor:
             matched_val = None
             matched_span = None
 
-            # Pattern-based span search
+            # Pattern-based span search in scraped text
             for val in allowed_lovs:
                 if val.lower() in text_lower:
                     matched_val = val
@@ -61,7 +76,7 @@ class AttributeExtractor:
                     source_url=source_url,
                     exact_text_span=matched_span,
                     retrieval_method="constrained_rag",
-                    confidence_score=0.96
+                    confidence_score=0.96,
                 )
                 results[attr] = AttributeValue(
                     attribute_name=attr,
@@ -70,7 +85,7 @@ class AttributeExtractor:
                     in_lov=True,
                     provenance=prov,
                     status=StatusTag.AUTO_APPROVED,
-                    confidence=0.96
+                    confidence=0.96,
                 )
             else:
                 # ABSTAIN rule: never fabricate when source text lacks proof
@@ -81,8 +96,10 @@ class AttributeExtractor:
                     in_lov=False,
                     provenance=None,
                     status=StatusTag.ABSTAINED,
-                    confidence=0.0
+                    confidence=0.0,
                 )
 
-        logger.debug(f"[L6 Extraction] Extracted {len([k for k,v in results.items() if v.in_lov])} validated attributes.")
+        logger.debug(
+            f"[L6 Extraction] Extracted {len([k for k, v in results.items() if v.in_lov])} validated attributes."
+        )
         return results
