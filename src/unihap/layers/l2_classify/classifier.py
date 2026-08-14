@@ -33,12 +33,246 @@ from unihap.core.logging import logger
 from unihap.core.models import Classpath
 
 TAXONOMY_DICTIONARY: List[Dict] = [
-    # Plumbing
+    # 1. Building Materials & Decking
+    {
+        "dept": "Building Materials",
+        "class": "Decking & Railing",
+        "fine": "Composite Decking",
+        "keywords": [
+            "decking",
+            "deck board",
+            "trex",
+            "timbertech",
+            "transcend",
+            "enhance",
+            "select",
+            "grooved",
+            "lineage",
+            "vintage",
+            "fascia",
+            "porch floor",
+        ],
+    },
+    {
+        "dept": "Building Materials",
+        "class": "Trim & Moulding",
+        "fine": "PVC Trimboards",
+        "keywords": [
+            "azek",
+            "trimboard",
+            "pvc trim",
+            "1nx6",
+            "1x12",
+            "casing",
+            "baseboard",
+            "moulding",
+            "fascia board",
+        ],
+    },
+    {
+        "dept": "Building Materials",
+        "class": "Lumber & Composites",
+        "fine": "Framing Lumber",
+        "keywords": [
+            "framing lumber",
+            "stud",
+            "plywood",
+            "sheathing",
+            "spf lumber",
+            "boise",
+            "timber",
+            "glulam",
+            "osb",
+            "lumber",
+            "premier",
+        ],
+    },
+    # 2. Lighting & Electrical
+    {
+        "dept": "Electrical",
+        "class": "Lighting",
+        "fine": "Light Bulbs",
+        "keywords": [
+            "light bulb",
+            "led bulb",
+            "lamp",
+            "halogen bulb",
+            "candelabra",
+            "incandescent",
+            "fluorescent",
+            "hid lamp",
+            "par38",
+            "br30",
+            "a19",
+            "philips",
+            "phillips",
+            "satco",
+            "ballast",
+            "t8",
+            "bulb",
+            "lighting",
+        ],
+    },
+    {
+        "dept": "Electrical",
+        "class": "Lighting Fixtures",
+        "fine": "Ceiling Lights",
+        "keywords": [
+            "chandelier",
+            "pendant light",
+            "flush mount",
+            "sconce",
+            "vanity light",
+            "kichler",
+            "ceiling fan",
+            "track light",
+            "wall light",
+            "outdoor lantern",
+            "landscape light",
+            "hunter",
+        ],
+    },
+    {
+        "dept": "Electrical",
+        "class": "Wiring & Devices",
+        "fine": "Receptacles & Outlets",
+        "keywords": [
+            "receptacle",
+            "outlet",
+            "wall switch",
+            "gfci",
+            "dimmer switch",
+            "wire spool",
+            "leviton",
+            "southwire",
+            "romex",
+            "wallplate",
+            "decora",
+            "conduit",
+            "cable",
+            "wire",
+        ],
+    },
+    # 3. Power Tools & Accessories
+    {
+        "dept": "Tools",
+        "class": "Abrasives & Sanding",
+        "fine": "Sanding Belts",
+        "keywords": [
+            "sanding belt",
+            "sanding disc",
+            "stikit film",
+            "cubitron",
+            "abrasive belt",
+            "sandpaper",
+            "abrasive disc",
+            "grinding wheel",
+            "flap disc",
+            "abrasive",
+        ],
+    },
+    {
+        "dept": "Tools",
+        "class": "Power Tool Accessories",
+        "fine": "Saw Blades",
+        "keywords": [
+            "saw blade",
+            "circular saw blade",
+            "sawzall",
+            "reciprocating blade",
+            "hole dozer",
+            "hole saw",
+            "drill bit",
+            "router bit",
+            "carbide blade",
+            "saw blade",
+        ],
+    },
+    {
+        "dept": "Tools",
+        "class": "Power Tools",
+        "fine": "Cordless Power Tools",
+        "keywords": [
+            "drill",
+            "impact driver",
+            "hammer drill",
+            "rotary hammer",
+            "m18",
+            "m12",
+            "lxt",
+            "heated jacket",
+            "(bare)",
+            "cordless",
+            "bare tool",
+        ],
+    },
+    # 4. Appliances & HVAC
+    {
+        "dept": "Appliances",
+        "class": "Large Appliances",
+        "fine": "Dishwashers",
+        "keywords": [
+            "dishwasher",
+            "built-in dishwasher",
+            "dish washer",
+            "ss dishwasher",
+            "pdsh",
+            "wdts",
+            "frigidaire",
+            "whirlpool",
+            "appliance",
+        ],
+    },
+    {
+        "dept": "Appliances",
+        "class": "Large Appliances",
+        "fine": "Refrigerators",
+        "keywords": ["refrigerator", "french door refrigerator", "freezer", "ice maker", "fridge"],
+    },
+    {
+        "dept": "Appliances",
+        "class": "Large Appliances",
+        "fine": "Ranges & Ovens",
+        "keywords": ["range", "gas range", "electric range", "cooktop", "wall oven", "microwave"],
+    },
+    {
+        "dept": "Appliances",
+        "class": "Water Heaters",
+        "fine": "Residential Water Heaters",
+        "keywords": ["water heater", "gas water heater", "electric water heater", "tankless water heater", "rheem"],
+    },
+    # 5. Safety & Protective Equipment
+    {
+        "dept": "Safety & Security",
+        "class": "Personal Protective Equipment",
+        "fine": "Safety Glasses & Gear",
+        "keywords": [
+            "eyewear",
+            "safety glasses",
+            "goggles",
+            "tech gear",
+            "edge eyewear",
+            "gloves",
+            "earplug",
+            "respirator",
+        ],
+    },
+    # 6. Plumbing & Fixtures
     {
         "dept": "Plumbing",
         "class": "Faucets",
         "fine": "Kitchen Faucets",
-        "keywords": ["kitchen faucet", "pull-down faucet", "kitchen sink faucet", "prep faucet", "pot filler"],
+        "keywords": [
+            "kitchen faucet",
+            "pull-down faucet",
+            "kitchen sink faucet",
+            "prep faucet",
+            "pot filler",
+            "faucet",
+            "kohler",
+            "moen",
+            "delta",
+        ],
     },
     {
         "dept": "Plumbing",
@@ -54,12 +288,6 @@ TAXONOMY_DICTIONARY: List[Dict] = [
     },
     {
         "dept": "Plumbing",
-        "class": "Faucets",
-        "fine": "Tub & Shower Faucets",
-        "keywords": ["shower valve", "shower trim", "tub filler", "roman tub faucet", "shower head"],
-    },
-    {
-        "dept": "Plumbing",
         "class": "Pipes & Fittings",
         "fine": "Pipe Fittings",
         "keywords": [
@@ -72,71 +300,15 @@ TAXONOMY_DICTIONARY: List[Dict] = [
             "flange",
             "pvc fitting",
             "copper fitting",
+            "pipe",
+            "fitting",
         ],
     },
     {
         "dept": "Plumbing",
         "class": "Valves",
         "fine": "Ball Valves",
-        "keywords": ["ball valve", "shut-off valve", "full port valve", "brass ball valve"],
-    },
-    # Appliances
-    {
-        "dept": "Appliances",
-        "class": "Large Appliances",
-        "fine": "Dishwashers",
-        "keywords": ["dishwasher", "built-in dishwasher", "dish washer", "ss dishwasher", "pdsh", "wdts"],
-    },
-    {
-        "dept": "Appliances",
-        "class": "Large Appliances",
-        "fine": "Refrigerators",
-        "keywords": ["refrigerator", "french door refrigerator", "freezer", "ice maker"],
-    },
-    {
-        "dept": "Appliances",
-        "class": "Water Heaters",
-        "fine": "Residential Water Heaters",
-        "keywords": ["water heater", "gas water heater", "electric water heater", "tankless water heater"],
-    },
-    # Tools & Abrasives
-    {
-        "dept": "Tools",
-        "class": "Abrasives & Sanding",
-        "fine": "Sanding Belts",
-        "keywords": ["sanding belt", "sanding disc", "stikit film", "cubitron", "abrasive belt", "sandpaper"],
-    },
-    {
-        "dept": "Tools",
-        "class": "Power Tools",
-        "fine": "Drills & Drivers",
-        "keywords": ["drill", "impact driver", "hammer drill", "rotary hammer"],
-    },
-    # Lighting & Electrical
-    {
-        "dept": "Electrical",
-        "class": "Lighting",
-        "fine": "Light Bulbs",
-        "keywords": ["light bulb", "led bulb", "lamp", "halogen bulb", "candelabra", "incandescent"],
-    },
-    {
-        "dept": "Electrical",
-        "class": "Lighting Fixtures",
-        "fine": "Ceiling Lights",
-        "keywords": ["chandelier", "pendant light", "flush mount", "sconce", "vanity light"],
-    },
-    {
-        "dept": "Electrical",
-        "class": "Wiring & Devices",
-        "fine": "Receptacles & Outlets",
-        "keywords": ["receptacle", "outlet", "wall switch", "gfci", "dimmer switch", "wire spool"],
-    },
-    # Building Materials
-    {
-        "dept": "Building Materials",
-        "class": "Lumber & Composites",
-        "fine": "Framing Lumber",
-        "keywords": ["framing lumber", "stud", "plywood", "sheathing", "deck board", "spf lumber"],
+        "keywords": ["ball valve", "shut-off valve", "full port valve", "brass ball valve", "check valve", "valve"],
     },
 ]
 
@@ -218,10 +390,16 @@ Return valid JSON with format:
 
         desc_lower = description.lower()
 
+        # Check raw attributes for clues (e.g. manufacturer or class)
+        extra_text = ""
+        if raw_attrs:
+            extra_text = " ".join([str(v).lower() for v in raw_attrs.values() if v is not None])
+        full_text = f"{desc_lower} {extra_text}".strip()
+
         # Stage A: Deterministic Keyword Match
         for item in self.taxonomy:
             for kw in item["keywords"]:
-                if kw in desc_lower:
+                if kw in full_text:
                     logger.debug(f"[L2 Classify] Stage A match on keyword '{kw}'")
                     return Classpath(
                         department=item["dept"],
@@ -233,7 +411,34 @@ Return valid JSON with format:
                     )
 
         # Stage B: Semantic heuristics
-        if "dishwasher" in desc_lower:
+        if "deck" in full_text or "trex" in full_text or "timber" in full_text:
+            return Classpath(
+                department="Building Materials",
+                category_class="Decking & Railing",
+                fine_category="Composite Decking",
+                raw_string="Building Materials > Decking & Railing > Composite Decking",
+                confidence=0.92,
+                stage="embedding",
+            )
+        if "azek" in full_text or "trim" in full_text:
+            return Classpath(
+                department="Building Materials",
+                category_class="Trim & Moulding",
+                fine_category="PVC Trimboards",
+                raw_string="Building Materials > Trim & Moulding > PVC Trimboards",
+                confidence=0.92,
+                stage="embedding",
+            )
+        if "blade" in full_text or "saw" in full_text or "milw" in full_text:
+            return Classpath(
+                department="Tools",
+                category_class="Power Tool Accessories",
+                fine_category="Saw Blades",
+                raw_string="Tools > Power Tool Accessories > Saw Blades",
+                confidence=0.90,
+                stage="embedding",
+            )
+        if "dishwasher" in full_text or "appliance" in full_text or "frigidaire" in full_text:
             return Classpath(
                 department="Appliances",
                 category_class="Large Appliances",
@@ -242,31 +447,19 @@ Return valid JSON with format:
                 confidence=0.90,
                 stage="embedding",
             )
-        if "sanding" in desc_lower or "belt" in desc_lower or "abrasive" in desc_lower:
-            return Classpath(
-                department="Tools",
-                category_class="Abrasives & Sanding",
-                fine_category="Sanding Belts",
-                raw_string="Tools > Abrasives & Sanding > Sanding Belts",
-                confidence=0.88,
-                stage="embedding",
-            )
-        if "bulb" in desc_lower or "lamp" in desc_lower or "lighting" in desc_lower:
+        if (
+            "bulb" in full_text
+            or "lamp" in full_text
+            or "light" in full_text
+            or "kichler" in full_text
+            or "philips" in full_text
+        ):
             return Classpath(
                 department="Electrical",
                 category_class="Lighting",
                 fine_category="Light Bulbs",
                 raw_string="Electrical > Lighting > Light Bulbs",
-                confidence=0.88,
-                stage="embedding",
-            )
-        if "faucet" in desc_lower or "spout" in desc_lower or "tap" in desc_lower:
-            return Classpath(
-                department="Plumbing",
-                category_class="Faucets",
-                fine_category="General Faucets",
-                raw_string="Plumbing > Faucets > General Faucets",
-                confidence=0.85,
+                confidence=0.90,
                 stage="embedding",
             )
 

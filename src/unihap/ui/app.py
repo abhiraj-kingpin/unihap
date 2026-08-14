@@ -6,7 +6,7 @@ PURPOSE:
     Provides a feature-rich, interactive web dashboard for catalog curators and reviewers:
       - Uploading raw catalog spreadsheets (XLSX / CSV) or running on bundled datasets
       - High-level KPIs (Total Processed, Auto-Approved %, Needs-Review %, Rejected %)
-      - Interactive filterable Data Table (Filter by status, search by MPN or Manufacturer)
+      - Interactive filterable Data Table with configurable pagination (50, 100, 250, 500, All 1000)
       - Detail Record Inspector: Side-by-side view of raw input, canonical master data,
         5 description formats, and attribute table with exact `evidence_span` & source URL
       - One-click Curator Approval / Correction editor updating the feedback queue
@@ -91,7 +91,7 @@ else:
 # Run Pipeline Button
 if st.sidebar.button("🚀 Run 12-Layer Pipeline", type="primary"):
     if active_input_path and active_input_path.exists():
-        with st.spinner("Executing 12-layer pipeline with Groq & Firecrawl integrations..."):
+        with st.spinner("Executing 12-layer pipeline on all catalog records..."):
             pipeline = UniHAPPipeline()
             result = pipeline.run(active_input_path)
             st.session_state["pipeline_result"] = result
@@ -116,22 +116,25 @@ if "pipeline_result" in st.session_state:
         "Needs Review (70-89%)",
         f"{res.needs_review_count} ({round(res.needs_review_count / res.total_processed * 100, 1)}%)",
     )
-    col4.metric("Rejected (<70%)", res.rejected_count)
+    col4.metric(
+        "Rejected (<70%)", f"{res.rejected_count} ({round(res.rejected_count / res.total_processed * 100, 1)}%)"
+    )
     col5.metric("Execution Latency", f"{res.execution_time_seconds}s")
 
     st.divider()
 
     # Filter Controls
-    fcol1, fcol2, fcol3 = st.columns([2, 2, 2])
+    fcol1, fcol2, fcol3, fcol4 = st.columns([2, 2, 2, 2])
     status_filter = fcol1.selectbox("Filter by Status Tier:", ["All", "auto-approved", "needs-review", "rejected"])
     search_query = fcol2.text_input("Search by MPN or Manufacturer:", "")
+    page_size_option = fcol3.selectbox("Display Rows:", [100, 250, 500, "All (1,000)"])
 
     # Export Delivery CSV Button
     delivery_csv_path = Path("/tmp/unihap_delivery_export.csv")
     DeliveryFormatExporter.export_to_csv(records, delivery_csv_path)
     with open(delivery_csv_path, "rb") as f:
-        fcol3.download_button(
-            label="📥 Download 252-Column Delivery CSV",
+        fcol4.download_button(
+            label="📥 Download 252-Col CSV",
             data=f,
             file_name="unihap_252_column_delivery.csv",
             mime="text/csv",
@@ -152,11 +155,19 @@ if "pipeline_result" in st.session_state:
             or q in (r.descriptions.short_title or "").lower()
         ]
 
-    st.subheader(f"Enriched Catalog Items ({len(filtered_records)} displayed)")
+    # Slice for display
+    if page_size_option == "All (1,000)":
+        display_records = filtered_records
+    else:
+        display_records = filtered_records[: int(page_size_option)]
+
+    st.subheader(
+        f"Enriched Catalog Items ({len(filtered_records)} total matching filter, showing {len(display_records)})"
+    )
 
     # Construct Display Table
     table_rows = []
-    for r in filtered_records[:100]:  # Paginated/capped for UI performance
+    for r in display_records:
         table_rows.append(
             {
                 "Row ID": r.row_id,
@@ -170,79 +181,80 @@ if "pipeline_result" in st.session_state:
         )
 
     df_display = pd.DataFrame(table_rows)
-    st.dataframe(df_display, use_container_width=True, height=280)
+    st.dataframe(df_display, use_container_width=True, height=350)
 
     # Detail Record Inspector
     st.divider()
     st.subheader("🔍 Record Inspector & Evidence Citations")
 
-    selected_row_id = st.selectbox(
-        "Select Record to Inspect Detail & Provenance:",
-        [r.row_id for r in filtered_records[:100]],
-        format_func=lambda rid: (
-            f"Row {rid} — {[r.mpn for r in filtered_records if r.row_id == rid][0]} ({[r.canonical_manufacturer for r in filtered_records if r.row_id == rid][0]})"
-        ),
-    )
+    if filtered_records:
+        selected_row_id = st.selectbox(
+            "Select Record to Inspect Detail & Provenance:",
+            [r.row_id for r in filtered_records],
+            format_func=lambda rid: (
+                f"Row {rid} — {[r.mpn for r in filtered_records if r.row_id == rid][0]} ({[r.canonical_manufacturer for r in filtered_records if r.row_id == rid][0]})"
+            ),
+        )
 
-    if selected_row_id:
-        target_rec = next(r for r in filtered_records if r.row_id == selected_row_id)
+        if selected_row_id:
+            target_rec = next(r for r in filtered_records if r.row_id == selected_row_id)
 
-        icol1, icol2 = st.columns(2)
+            icol1, icol2 = st.columns(2)
 
-        with icol1:
-            st.markdown("#### Master Data & Descriptions")
-            st.markdown(f"**Canonical Manufacturer**: `{target_rec.canonical_manufacturer}`")
-            st.markdown(f"**Canonical Brand**: `{target_rec.canonical_brand}`")
-            st.markdown(
-                f"**Classpath**: `{target_rec.classification.full_path if target_rec.classification else 'N/A'}`"
-            )
-            st.markdown(f"**Official Spec URL**: [{target_rec.spec_source_url}]({target_rec.spec_source_url})")
+            with icol1:
+                st.markdown("#### Master Data & Descriptions")
+                st.markdown(f"**Canonical Manufacturer**: `{target_rec.canonical_manufacturer}`")
+                st.markdown(f"**Canonical Brand**: `{target_rec.canonical_brand}`")
+                st.markdown(
+                    f"**Classpath**: `{target_rec.classification.full_path if target_rec.classification else 'N/A'}`"
+                )
+                st.markdown(f"**Official Spec URL**: [{target_rec.spec_source_url}]({target_rec.spec_source_url})")
 
-            st.markdown("##### Synthesized 5 Formats:")
-            st.code(
-                f"INVOICE_DESC (<=40 CAPS) : {target_rec.descriptions.invoice_caps}\n"
-                f"MOBILE_DESC (60-80 chars): {target_rec.descriptions.mobile}\n"
-                f"SHORT_DESC               : {target_rec.descriptions.short_title}\n\n"
-                f"LONG_DESC:\n{target_rec.descriptions.long_desc}"
-            )
+                st.markdown("##### Synthesized 5 Formats:")
+                st.code(
+                    f"INVOICE_DESC (<=40 CAPS) : {target_rec.descriptions.invoice_caps}\n"
+                    f"MOBILE_DESC (60-80 chars): {target_rec.descriptions.mobile}\n"
+                    f"SHORT_DESC               : {target_rec.descriptions.short_title}\n\n"
+                    f"LONG_DESC:\n{target_rec.descriptions.long_desc}"
+                )
 
-        with icol2:
-            st.markdown("#### Extracted Attributes & Evidence Spans")
-            attr_table = []
-            for aname, aval in target_rec.attributes.items():
-                if aval.normalized_value:
-                    span_text = aval.provenance.exact_text_span if aval.provenance else "Direct Match"
-                    attr_table.append(
-                        {
-                            "Attribute": aname,
-                            "Normalized Value": aval.normalized_value,
-                            "In LOV": "✅" if aval.in_lov else "❌",
-                            "Evidence Span Quote": span_text,
-                            "Status": aval.status.value,
-                        }
-                    )
+            with icol2:
+                st.markdown("#### Extracted Attributes & Evidence Spans")
+                attr_table = []
+                for aname, aval in target_rec.attributes.items():
+                    if aval.normalized_value:
+                        span_text = aval.provenance.exact_text_span if aval.provenance else "Direct Match"
+                        attr_table.append(
+                            {
+                                "Attribute": aname,
+                                "Normalized Value": aval.normalized_value,
+                                "In LOV": "✅" if aval.in_lov else "❌",
+                                "Evidence Span Quote": span_text,
+                                "Status": aval.status.value,
+                            }
+                        )
 
-            if attr_table:
-                st.dataframe(pd.DataFrame(attr_table), use_container_width=True)
-            else:
-                st.info("No attributes extracted for this item.")
+                if attr_table:
+                    st.dataframe(pd.DataFrame(attr_table), use_container_width=True)
+                else:
+                    st.info("No attributes extracted for this item.")
 
-        # Human Correction / Curation Tool
-        st.markdown("##### ✍️ Human-in-the-Loop Curation Tool")
-        with st.expander("Apply Human Override / Correction"):
-            corr_attr = st.selectbox(
-                "Attribute to Correct:", list(target_rec.attributes.keys()) if target_rec.attributes else ["Finish"]
-            )
-            corr_val = st.text_input("New Corrected LOV Value:", "")
-            if st.button("Apply Correction & Approve Record"):
-                if corr_val and "pipeline_instance" in st.session_state:
-                    pl = st.session_state["pipeline_instance"]
-                    pl.hitl_queue.add_to_queue(target_rec)
-                    updated = pl.hitl_queue.apply_human_correction(target_rec.row_id, {corr_attr: corr_val})
-                    st.success(
-                        f"Applied correction for Row {target_rec.row_id}: {corr_attr} -> {corr_val}. Status promoted to AUTO_APPROVED!"
-                    )
-                    st.rerun()
+            # Human Correction / Curation Tool
+            st.markdown("##### ✍️ Human-in-the-Loop Curation Tool")
+            with st.expander("Apply Human Override / Correction"):
+                corr_attr = st.selectbox(
+                    "Attribute to Correct:", list(target_rec.attributes.keys()) if target_rec.attributes else ["Finish"]
+                )
+                corr_val = st.text_input("New Corrected LOV Value:", "")
+                if st.button("Apply Correction & Approve Record"):
+                    if corr_val and "pipeline_instance" in st.session_state:
+                        pl = st.session_state["pipeline_instance"]
+                        pl.hitl_queue.add_to_queue(target_rec)
+                        updated = pl.hitl_queue.apply_human_correction(target_rec.row_id, {corr_attr: corr_val})
+                        st.success(
+                            f"Applied correction for Row {target_rec.row_id}: {corr_attr} -> {corr_val}. Status promoted to AUTO_APPROVED!"
+                        )
+                        st.rerun()
 
 else:
     st.info("👈 Click **Run 12-Layer Pipeline** in the sidebar to start batch catalog processing!")

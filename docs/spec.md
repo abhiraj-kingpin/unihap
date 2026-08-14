@@ -66,3 +66,19 @@ Depth over breadth (brief's own guidance). Build full 12-layer pipeline against 
 ## Open Risk / Unverified
 1. Crawl4AI scrape hit-rate on real long-tail manufacturer sites — untested, needs sample run.
 2. Classpath accuracy at "Fine" granularity — no external benchmark for this specific taxonomy depth; mitigated by L9/L10 (confidence + human review), not assumed away.
+
+## UI Architecture Roadmap (Streamlit Prototype → React Enterprise Application)
+
+### Phase 1 (Current Prototype) — Streamlit HITL Dashboard
+- **Role**: Fast internal QA, curation triage, batch execution, and rapid data exploration.
+- **Components**: KPI overview cards, filterable paginated catalog grid (100 to 1,000 rows), side-by-side Record Inspector, and in-memory human curation override with 252-column delivery CSV export.
+
+### Phase 2 (Production Web App) — React / Next.js Enterprise UI
+- **Frontend Framework**: **React 19 / Next.js App Router** with TypeScript.
+- **Styling & Aesthetics**: High-contrast, executive-grade design system with TailwindCSS / Vanilla CSS, responsive viewport adaptation, dark/light theme, and strict accessibility (WCAG AA).
+- **Core Product Features**:
+  1. **High-Performance Data Grid**: Virtualized TanStack Table / AG-Grid Enterprise handling 100k+ catalog rows with column sorting, multi-attribute fuzzy search, column grouping, and batch approval.
+  2. **Side-by-Side Split View**: Left pane displays canonical product master data & 5 description formats; Right pane embeds an interactive PDF/HTML document viewer with synchronized, highlighted `evidence_span` citations.
+  3. **Real-Time Streaming & WebSocket Updates**: Live WebSocket pipeline progress bars showing layer-by-layer throughput (records/sec, token spend, Groq API latency).
+  4. **Curator Collaborative Workflow**: Keyboard-first curation shortcuts (`Cmd+Enter` to approve, `Tab` navigation), audit log history, and multi-user lock state.
+  5. **Direct Delivery Exporter & API Connector**: Instant 252-column CSV download and direct REST/GraphQL webhooks to ERP/PIM systems (e.g. Akeneo, Salsify, SAP).
