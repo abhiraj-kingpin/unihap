@@ -128,7 +128,11 @@ class UniHAPPipeline:
 
         return enriched
 
-    def run(self, input_file: Union[str, Path]) -> PipelineResult:
+    def run(
+        self,
+        input_file: Union[str, Path],
+        output_delivery_csv: Optional[Union[str, Path]] = None
+    ) -> PipelineResult:
         """Executes full 12-layer pipeline on an input catalog file."""
         t0 = time.time()
         raw_records = self.ingestor.parse_file(input_file)

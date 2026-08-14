@@ -114,5 +114,18 @@ The pipeline automatically evaluates performance against the 200-row benchmark:
 
 ---
 
+## 📚 Documentation & Team Guidelines
+
+All architectural, operational, and team collaboration specifications reside in the [`docs/`](docs/) directory:
+
+- 📋 [**Team & Contribution Rules**](docs/rules.md) — Non-negotiable architectural invariants, zero-hallucination rules, git workflow, and coding standards for all contributors.
+- 🔄 [**Operational & Developer Workflow**](docs/WORKFLOW.md) — Sequence diagrams, operator guides, HITL curation flow, and developer runbooks.
+- 📜 [**Changelog**](docs/CHANGELOG.md) — Release notes and version history (v0.1.0 initial release).
+- 📝 [**Full Technical Specification**](docs/spec.md) — 12-layer technical specification, cost models, and prior art validation.
+- 🏛️ [**Architecture Guide**](docs/architecture.md) — LLM cascade, controlled LOV graph schema, and confidence gating.
+- ⚡ [**Tech Stack & Requirements**](docs/tech_stack.md) — Complete runtime packages and dependency requirements.
+
+---
+
 ## 📜 License
 Proprietary & Confidential — UniHAP Enterprise.

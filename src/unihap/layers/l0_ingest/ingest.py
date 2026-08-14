@@ -59,7 +59,10 @@ class CatalogIngestor:
             raise IngestError(f"Failed to read file {file_path}: {e}")
 
         # Clean all cells
-        df = df.applymap(self.clean_cell_value)
+        if hasattr(df, "map"):
+            df = df.map(self.clean_cell_value)
+        else:
+            df = df.applymap(self.clean_cell_value)
 
         # Standardize column headers
         col_map = {}

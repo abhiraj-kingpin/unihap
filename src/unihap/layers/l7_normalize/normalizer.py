@@ -58,15 +58,16 @@ class AttributeNormalizer:
 
         result = text.strip()
 
-        # Normalize fractions
-        for frac, dec in self.fraction_map.items():
-            pattern = rf"\b{re.escape(frac)}\b"
+        # Normalize fractions (longest matches first to avoid partial replacements like 1-1/4 -> 1-0.25)
+        sorted_fractions = sorted(self.fraction_map.items(), key=lambda item: len(item[0]), reverse=True)
+        for frac, dec in sorted_fractions:
+            pattern = rf"(?<!\w){re.escape(frac)}(?!\w)"
             result = re.sub(pattern, dec, result)
 
         # Normalize UOMs
         for raw_uom, std_uom in self.uom_map.items():
             if raw_uom == '"':
-                result = re.sub(r'(\d+)\s*"', r"\1 in", result)
+                result = re.sub(r'(\d+(?:\.\d+)?)\s*"', r"\1 in", result)
             else:
                 pattern = rf"\b{re.escape(raw_uom)}\b"
                 result = re.sub(pattern, std_uom, result, flags=re.IGNORECASE)
