@@ -9,13 +9,13 @@ PURPOSE:
       - (Attribute) -[:ALLOWS_VALUE]-> (AllowedValue)
       - (Synonym) -[:CANONICAL_SYNONYM]-> (AllowedValue)
     Provides canonical synonym traversal to map thousands of vendor variants
-    (e.g., 'SS', 'Stnlss Stl' -> 'Stainless Steel') to strictly controlled LOVs.
+    (e.g., 'SS', 'Stnlss Stl' -> 'Stainless Steel', 'E26' -> 'E26 Medium') to strictly controlled LOVs.
 
 CLASSES:
     - TaxonomyGraph: Directed graph modeling attributes, LOVs, and synonym bridges.
 
 FUNCTIONS / METHODS:
-    - TaxonomyGraph._build_default_schema(): Initializes standard plumbing, appliance, and tool nodes.
+    - TaxonomyGraph._build_default_schema(): Initializes standard plumbing, appliance, tool, electrical, and lighting nodes.
     - TaxonomyGraph.get_allowed_attributes(classpath: str) -> List[str]: Queries attributes for a classpath.
     - TaxonomyGraph.get_allowed_values(attribute: str) -> List[str]: Queries controlled LOV values for an attribute.
     - TaxonomyGraph.canonicalize_synonym(raw_value: str) -> Optional[str]: Traverses synonym edges to find canonical LOV.
@@ -33,18 +33,17 @@ import networkx as nx
 
 
 class TaxonomyGraph:
-    """In-memory Knowledge Graph for attribute schemas and canonical mappings."""
+    """In-memory Knowledge Graph for multi-domain attribute schemas and canonical mappings."""
 
     def __init__(self):
         self.graph = nx.DiGraph()
         self._build_default_schema()
 
     def _build_default_schema(self):
-        """Initializes standard multi-category taxonomy and LOVs."""
-        # 1. Kitchen Faucets
+        """Initializes multi-category taxonomy and controlled LOVs."""
+        # 1. Plumbing: Kitchen Faucets
         cp_kitchen = "Plumbing > Faucets > Kitchen Faucets"
         self.graph.add_node(cp_kitchen, type="classpath")
-
         attributes_faucets = {
             "Finish": [
                 "Chrome",
@@ -60,7 +59,6 @@ class TaxonomyGraph:
             "Material": ["Brass", "Stainless Steel", "Zinc Alloy", "Plastic"],
             "Spout Reach": ["8 in", "8.5 in", "9 in", "9.5 in", "10 in"],
         }
-
         for attr, allowed_values in attributes_faucets.items():
             self.graph.add_node(attr, type="attribute")
             self.graph.add_edge(cp_kitchen, attr, relationship="HAS_ATTRIBUTE")
@@ -68,7 +66,7 @@ class TaxonomyGraph:
                 self.graph.add_node(val, type="allowed_value")
                 self.graph.add_edge(attr, val, relationship="ALLOWS_VALUE")
 
-        # 2. Appliances: Dishwashers
+        # 2. Appliances: Dishwashers & Water Heaters
         cp_dishwasher = "Appliances > Large Appliances > Dishwashers"
         self.graph.add_node(cp_dishwasher, type="classpath")
         attributes_dishwasher = {
@@ -86,7 +84,7 @@ class TaxonomyGraph:
                 self.graph.add_node(val, type="allowed_value")
                 self.graph.add_edge(attr, val, relationship="ALLOWS_VALUE")
 
-        # 3. Tools: Sanding Belts
+        # 3. Tools: Sanding Belts & Abrasives
         cp_sanding = "Tools > Abrasives & Sanding > Sanding Belts"
         self.graph.add_node(cp_sanding, type="classpath")
         attributes_sanding = {
@@ -98,6 +96,23 @@ class TaxonomyGraph:
         for attr, allowed_values in attributes_sanding.items():
             self.graph.add_node(attr, type="attribute")
             self.graph.add_edge(cp_sanding, attr, relationship="HAS_ATTRIBUTE")
+            for val in allowed_values:
+                self.graph.add_node(val, type="allowed_value")
+                self.graph.add_edge(attr, val, relationship="ALLOWS_VALUE")
+
+        # 4. Electrical: Lighting & Bulbs
+        cp_lighting = "Electrical > Lighting > Light Bulbs"
+        self.graph.add_node(cp_lighting, type="classpath")
+        attributes_lighting = {
+            "Wattage": ["60 W", "75 W", "100 W", "9 W", "12 W", "15 W"],
+            "Lumens": ["800 lm", "1100 lm", "1600 lm", "450 lm"],
+            "Bulb Base": ["E26 Medium", "E12 Candelabra", "GU10", "G9"],
+            "Color Temperature": ["2700 K", "3000 K", "4000 K", "5000 K"],
+            "Dimmable": ["Yes", "No"],
+        }
+        for attr, allowed_values in attributes_lighting.items():
+            self.graph.add_node(attr, type="attribute")
+            self.graph.add_edge(cp_lighting, attr, relationship="HAS_ATTRIBUTE")
             for val in allowed_values:
                 self.graph.add_node(val, type="allowed_value")
                 self.graph.add_edge(attr, val, relationship="ALLOWS_VALUE")
@@ -127,6 +142,12 @@ class TaxonomyGraph:
             ('1/2"', "0.5 in"),
             ("18 in", "18 in"),
             ('18"', "18 in"),
+            ("E26", "E26 Medium"),
+            ("Medium Base", "E26 Medium"),
+            ("Candelabra", "E12 Candelabra"),
+            ("2700k", "2700 K"),
+            ("3000k", "3000 K"),
+            ("5000k", "5000 K"),
         ]
         for syn, canon in synonyms:
             self.graph.add_node(syn, type="synonym")
@@ -135,13 +156,24 @@ class TaxonomyGraph:
     def get_allowed_attributes(self, classpath: str) -> List[str]:
         """Returns the list of valid attributes for a given Classpath."""
         if classpath in self.graph:
-            return [
+            attrs = [
                 target
                 for _, target, data in self.graph.out_edges(classpath, data=True)
                 if data.get("relationship") == "HAS_ATTRIBUTE"
             ]
-        # Default attribute set
-        return ["Finish", "Material", "Installation Type", "Flow Rate", "Series", "Voltage Rating"]
+            if attrs:
+                return attrs
+        # Default cross-domain attribute set
+        return [
+            "Finish",
+            "Material",
+            "Installation Type",
+            "Flow Rate",
+            "Series",
+            "Voltage Rating",
+            "Wattage",
+            "Bulb Base",
+        ]
 
     def get_allowed_values(self, attribute: str) -> List[str]:
         """Returns the controlled LOV values for an attribute."""
