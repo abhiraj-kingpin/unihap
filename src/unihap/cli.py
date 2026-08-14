@@ -39,7 +39,7 @@ def run(
 
     pipeline = UniHAPPipeline()
     with console.status("[bold green]Executing 12-layer pipeline...[/bold green]"):
-        result = pipeline.run(input_file)
+        result = pipeline.run(input_file, output_delivery_csv=output_file)
 
     table = Table(title="Pipeline Execution Summary", show_header=True, header_style="bold magenta")
     table.add_column("Metric", style="dim")

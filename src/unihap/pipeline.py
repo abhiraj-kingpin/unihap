@@ -147,7 +147,7 @@ class UniHAPPipeline:
         # L12: Benchmark evaluation
         metrics = self.evaluator.evaluate_batch(enriched_records)
 
-        return PipelineResult(
+        result = PipelineResult(
             total_processed=len(enriched_records),
             auto_approved_count=auto_count,
             needs_review_count=review_count,
@@ -155,3 +155,10 @@ class UniHAPPipeline:
             records=enriched_records,
             execution_time_seconds=round(elapsed, 2)
         )
+
+        if output_delivery_csv:
+            from unihap.core.delivery_format import DeliveryFormatExporter
+            DeliveryFormatExporter.export_to_csv(enriched_records, Path(output_delivery_csv))
+            logger.info(f"Exported {len(enriched_records)} records to delivery format: {output_delivery_csv}")
+
+        return result
