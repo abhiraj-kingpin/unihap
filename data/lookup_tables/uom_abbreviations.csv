@@ -1,0 +1,34 @@
+raw_uom,canonical_uom,description
+",in,inches
+inch,in,inches
+inches,in,inches
+in.,in,inches
+',ft,feet
+ft,ft,feet
+ft.,ft,feet
+feet,ft,feet
+foot,ft,feet
+gpm,GPM,gallons per minute
+g.p.m.,GPM,gallons per minute
+GPM,GPM,gallons per minute
+psi,PSI,pounds per square inch
+p.s.i.,PSI,pounds per square inch
+PSI,PSI,pounds per square inch
+lbs,lb,pounds
+lb,lb,pounds
+pounds,lb,pounds
+oz,oz,ounces
+mm,mm,millimeters
+cm,cm,centimeters
+m,m,meters
+V,V,volts
+volt,V,volts
+volts,V,volts
+A,A,amperes
+amp,A,amperes
+amps,A,amperes
+W,W,watts
+watt,W,watts
+watts,W,watts
+HP,HP,horsepower
+hp,HP,horsepower
