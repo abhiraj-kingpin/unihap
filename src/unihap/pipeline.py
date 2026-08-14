@@ -146,6 +146,7 @@ class UniHAPPipeline:
             mpn=raw.raw_mpn or "UNKNOWN_MPN",
             canonical_manufacturer=canonical_mfr,
             canonical_brand=canonical_brand,
+            manufacturer_confidence=mfr_conf,
             manufacturer_domain=mfr_domain,
             spec_source_url=spec_url,
             classification=classpath,

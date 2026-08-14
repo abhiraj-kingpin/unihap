@@ -99,6 +99,7 @@ class EnrichedProductRecord(BaseModel):
     mpn: str
     canonical_manufacturer: str
     canonical_brand: Optional[str] = None
+    manufacturer_confidence: float = 1.0
     manufacturer_domain: Optional[str] = None
     spec_source_url: Optional[str] = None
 

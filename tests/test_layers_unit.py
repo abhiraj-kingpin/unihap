@@ -26,6 +26,7 @@ from unihap.core.models import (
     AttributeValue,
     Classpath,
     EnrichedProductRecord,
+    ProductDescriptionSet,
     ProvenanceSpan,
     StatusTag,
 )
@@ -169,6 +170,11 @@ def test_layer_9_validation_and_scoring():
         row_id="1",
         mpn="K-596",
         canonical_manufacturer="Kohler",
+        manufacturer_confidence=0.98,
+        classification=Classpath(
+            department="Plumbing", category_class="Faucets", fine_category="Kitchen Faucets", confidence=0.95
+        ),
+        descriptions=ProductDescriptionSet(invoice_caps="KOHLER K-596 KITCHEN FAUCET"),
         attributes={
             "Finish": AttributeValue(
                 attribute_name="Finish", normalized_value="Matte Black", in_lov=True, provenance=prov
@@ -176,7 +182,8 @@ def test_layer_9_validation_and_scoring():
         },
     )
     scored = validator.validate_and_score(rec)
-    assert scored.overall_confidence > 0.80
+    assert scored.overall_confidence > 0.85
+    assert scored.overall_status == StatusTag.AUTO_APPROVED
     assert scored.overall_status in [StatusTag.AUTO_APPROVED, StatusTag.NEEDS_REVIEW]
 
 

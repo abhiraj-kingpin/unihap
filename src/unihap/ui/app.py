@@ -5,8 +5,9 @@ MODULE: Streamlit Human-in-the-Loop (HITL) Review Dashboard
 PURPOSE:
     Provides a feature-rich, interactive web dashboard for catalog curators and reviewers:
       - Uploading raw catalog spreadsheets (XLSX / CSV) or running on bundled datasets
+      - Automatically loads and runs on the 1,000-row catalog on first launch
       - High-level KPIs (Total Processed, Auto-Approved %, Needs-Review %, Rejected %)
-      - Interactive filterable Data Table with configurable pagination (50, 100, 250, 500, All 1000)
+      - Interactive filterable Data Table with configurable display size (All 1,000, 500, 250, 100)
       - Detail Record Inspector: Side-by-side view of raw input, canonical master data,
         5 description formats, and attribute table with exact `evidence_span` & source URL
       - One-click Curator Approval / Correction editor updating the feedback queue
@@ -88,8 +89,15 @@ else:
         active_input_path = sample_input_path
         st.sidebar.info("Using bundled dataset: `unihack_sample_input.csv` (1,000 rows)")
 
-# Run Pipeline Button
-if st.sidebar.button("🚀 Run 12-Layer Pipeline", type="primary"):
+# Auto-run on startup if not already run
+if "pipeline_result" not in st.session_state and active_input_path and active_input_path.exists():
+    pipeline = UniHAPPipeline()
+    result = pipeline.run(active_input_path)
+    st.session_state["pipeline_result"] = result
+    st.session_state["pipeline_instance"] = pipeline
+
+# Manual Re-Run Button
+if st.sidebar.button("🔄 Re-Run 12-Layer Pipeline", type="primary"):
     if active_input_path and active_input_path.exists():
         with st.spinner("Executing 12-layer pipeline on all catalog records..."):
             pipeline = UniHAPPipeline()
@@ -109,15 +117,15 @@ if "pipeline_result" in st.session_state:
     col1, col2, col3, col4, col5 = st.columns(5)
     col1.metric("Total Processed", res.total_processed)
     col2.metric(
-        "Auto-Approved (≥90%)",
+        "Auto-Approved (≥85%)",
         f"{res.auto_approved_count} ({round(res.auto_approved_count / res.total_processed * 100, 1)}%)",
     )
     col3.metric(
-        "Needs Review (70-89%)",
+        "Needs Review (55-84%)",
         f"{res.needs_review_count} ({round(res.needs_review_count / res.total_processed * 100, 1)}%)",
     )
     col4.metric(
-        "Rejected (<70%)", f"{res.rejected_count} ({round(res.rejected_count / res.total_processed * 100, 1)}%)"
+        "Rejected (<55%)", f"{res.rejected_count} ({round(res.rejected_count / res.total_processed * 100, 1)}%)"
     )
     col5.metric("Execution Latency", f"{res.execution_time_seconds}s")
 
@@ -127,7 +135,7 @@ if "pipeline_result" in st.session_state:
     fcol1, fcol2, fcol3, fcol4 = st.columns([2, 2, 2, 2])
     status_filter = fcol1.selectbox("Filter by Status Tier:", ["All", "auto-approved", "needs-review", "rejected"])
     search_query = fcol2.text_input("Search by MPN or Manufacturer:", "")
-    page_size_option = fcol3.selectbox("Display Rows:", [100, 250, 500, "All (1,000)"])
+    page_size_option = fcol3.selectbox("Display Rows:", ["All (1,000)", 500, 250, 100], index=0)
 
     # Export Delivery CSV Button
     delivery_csv_path = Path("/tmp/unihap_delivery_export.csv")
@@ -162,7 +170,7 @@ if "pipeline_result" in st.session_state:
         display_records = filtered_records[: int(page_size_option)]
 
     st.subheader(
-        f"Enriched Catalog Items ({len(filtered_records)} total matching filter, showing {len(display_records)})"
+        f"Enriched Catalog Items ({len(filtered_records)} total matching filter, displaying {len(display_records)})"
     )
 
     # Construct Display Table
@@ -181,7 +189,7 @@ if "pipeline_result" in st.session_state:
         )
 
     df_display = pd.DataFrame(table_rows)
-    st.dataframe(df_display, use_container_width=True, height=350)
+    st.dataframe(df_display, use_container_width=True, height=380)
 
     # Detail Record Inspector
     st.divider()
