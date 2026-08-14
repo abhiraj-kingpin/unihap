@@ -82,13 +82,19 @@ TAXONOMY_DICTIONARY: List[Dict] = [
         "dept": "Appliances",
         "class": "Large Appliances",
         "fine": "Dishwashers",
-        "keywords": ["dishwasher", "built-in dishwasher", "dish washer", "ss dishwasher"],
+        "keywords": ["dishwasher", "built-in dishwasher", "dish washer", "ss dishwasher", "pdsh", "wdts"],
     },
     {
         "dept": "Appliances",
         "class": "Large Appliances",
         "fine": "Refrigerators",
         "keywords": ["refrigerator", "french door refrigerator", "freezer", "ice maker"],
+    },
+    {
+        "dept": "Appliances",
+        "class": "Water Heaters",
+        "fine": "Residential Water Heaters",
+        "keywords": ["water heater", "gas water heater", "electric water heater", "tankless water heater"],
     },
     # Tools & Abrasives
     {

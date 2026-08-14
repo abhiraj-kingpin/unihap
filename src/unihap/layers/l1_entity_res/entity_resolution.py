@@ -99,7 +99,11 @@ class EntityResolver:
         clean = re.sub(r",?\s*(?:LLC|Inc\.?|Corp\.?|Corporation|Co\.?)\b", "", clean, flags=re.IGNORECASE).strip()
         return clean
 
-    def resolve_manufacturer(self, raw_name: Optional[str], score_cutoff: float = 70.0) -> Tuple[str, float]:
+    def resolve_manufacturer(
+        self,
+        raw_name: Optional[str],
+        score_cutoff: float = 80.0,
+    ) -> Tuple[str, float]:
         """
         Fuzzy matches raw manufacturer name against canonical list.
         Returns (canonical_name, confidence_score).

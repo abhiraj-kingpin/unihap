@@ -71,7 +71,11 @@ class QualityValidator:
         record.provenance_coverage_pct = round(prov_pct * 100.0, 1)
 
         # Status Tag Assignment
-        if overall_conf >= self.auto_thresh and desc_valid:
+        if record.canonical_manufacturer in ["UNRESOLVED_MANUFACTURER", "", None] or (
+            record.classification and record.classification.confidence < 0.70
+        ):
+            record.overall_status = StatusTag.NEEDS_REVIEW
+        elif overall_conf >= self.auto_thresh and desc_valid:
             record.overall_status = StatusTag.AUTO_APPROVED
         elif overall_conf >= self.review_thresh:
             record.overall_status = StatusTag.NEEDS_REVIEW
