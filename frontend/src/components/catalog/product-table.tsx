@@ -50,7 +50,7 @@ export function ProductTable({ items, selected, onToggleRow, onToggleAll, reveal
           variants={buildStagger(table.getRowModel().rows.length)}
           initial="hidden"
           whileInView="visible"
-          viewport={{ once: true, amount: 0.1 }}
+          viewport={{ once: true, amount: "some" }}
         >
           {table.getRowModel().rows.map((row) => (
             <motion.tr

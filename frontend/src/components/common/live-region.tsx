@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useCallback, useContext, useRef, useState } from "react";
+import { createContext, useCallback, useContext, useEffect, useRef, useState } from "react";
 
 interface LiveAnnouncerContextValue {
   announce: (message: string) => void;
@@ -16,6 +16,12 @@ export function LiveRegionProvider({ children }: { children: React.ReactNode }) 
     setMessage(next);
     if (resetTimer.current) clearTimeout(resetTimer.current);
     resetTimer.current = setTimeout(() => setMessage(""), 5000);
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      if (resetTimer.current) clearTimeout(resetTimer.current);
+    };
   }, []);
 
   return (

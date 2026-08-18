@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Inter, JetBrains_Mono } from "next/font/google";
 import { Providers } from "@/app/providers";
+import { SITE_URL } from "@/lib/constants";
 import "./globals.css";
 
 const inter = Inter({
@@ -16,7 +17,7 @@ const jetbrainsMono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL("http://localhost:3000"),
+  metadataBase: new URL(SITE_URL),
   title: {
     default: "UniHAP HITL Dashboard - AI Product Review & Curation",
     template: "%s | UniHAP",

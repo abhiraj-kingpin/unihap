@@ -14,3 +14,5 @@ export const NAV_LINKS = [
 
 export const DEFAULT_CURATOR_NAME = "curator";
 export const DEFAULT_PAGE_SIZE = 25;
+
+export const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
